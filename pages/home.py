@@ -18,8 +18,8 @@ if weather is None:
         pass
 
 # Header Section
-st.title("🌧️ Monsoon Preparedness Central")
-st.write(f"Welcome back, **{profile.name}** | Status: `{st.session_state.user_role.capitalize()} Session`")
+st.header("🌧️ Monsoon Preparedness Central")
+st.caption(f"Welcome back, {profile.name}. Your current session is {st.session_state.user_role.capitalize()}.")
 
 # Render active top warning notification bar
 emergency_notification_bar(weather)
@@ -53,104 +53,62 @@ with col_main:
             alert_header = "🟢 LOW RISK - NORMAL CONDITIONS"
             alert_desc = f"Weather in {profile.city} is currently within manageable levels. Standard seasonal preparedness is recommended."
             
-        st.markdown(
-            f"""
-            <div class="{css_class}">
-                <strong style="font-size: 1.15rem; color: #ffffff;">{alert_header}</strong><br/>
-                <span style="color: #e2e8f0; font-size: 0.95rem; display: block; margin-top: 5px;">{alert_desc}</span>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
+        if "red" in alert_clean:
+            st.error(f"**{alert_header}**\n\n{alert_desc}")
+        elif "orange" in alert_clean:
+            st.warning(f"**{alert_header}**\n\n{alert_desc}")
+        elif "yellow" in alert_clean:
+            st.info(f"**{alert_header}**\n\n{alert_desc}")
+        else:
+            st.success(f"**{alert_header}**\n\n{alert_desc}")
     else:
         st.warning("Weather information is currently unavailable. Setup your profile or verify connectivity.")
 
     st.markdown("---")
 
     # 2. Weather Grid Component
-    st.subheader(f"⛈️ Weather Insights for `{profile.city}`")
+    st.subheader(f"⛈️ Weather Insights for {profile.city}")
     if weather:
-        # Mini description banner
-        st.markdown(f"**Current Status:** __{weather.get('conditions', 'Unknown')}__")
-        
+        st.caption(f"Current conditions: {weather.get('conditions', 'Unknown')}")
+
         w_cols = st.columns(4)
-        
         with w_cols[0]:
-            st.markdown(
-                f"""
-                <div class="metric-cell">
-                    <div class="metric-val">{weather.get('temperature', '--')}°C</div>
-                    <div class="metric-label">Temp</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.metric("Temperature", f"{weather.get('temperature', '--')}°C", help="Current temperature in your city")
         with w_cols[1]:
-            st.markdown(
-                f"""
-                <div class="metric-cell">
-                    <div class="metric-val">{weather.get('rain_probability', '--')}%</div>
-                    <div class="metric-label">Rain Prob</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.metric("Rain Probability", f"{weather.get('rain_probability', '--')}%", help="Estimated chance of rain")
         with w_cols[2]:
-            st.markdown(
-                f"""
-                <div class="metric-cell">
-                    <div class="metric-val">{weather.get('wind_speed', '--')} kph</div>
-                    <div class="metric-label">Wind</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.metric("Wind Speed", f"{weather.get('wind_speed', '--')} kph", help="Current wind speed")
         with w_cols[3]:
-            st.markdown(
-                f"""
-                <div class="metric-cell">
-                    <div class="metric-val">{weather.get('humidity', '--')}%</div>
-                    <div class="metric-label">Humidity</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            
-        # Refresh and status indicator
+            st.metric("Humidity", f"{weather.get('humidity', '--')}%", help="Current humidity")
+
         st.caption(f"Source: {'Simulated fallback metrics' if weather.get('is_mock') else 'Live OpenWeather feeds'} • Refresh for latest updates.")
     else:
         st.info("Please fill out your target details in profile setup to enable weather tracking.")
 
 with col_actions:
     st.subheader("⚡ Quick Control Actions")
-    
-    # Render quick action buttons that programmatically route the user
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("<p style='font-size:0.9rem; color:#8892b0; margin-top:0px;'>Navigate rapidly through pre-configured features:</p>", unsafe_allow_html=True)
-    
-    if st.button("👤 View & Edit Profile Info", use_container_width=True):
+    st.caption("Choose a task to move quickly between the main preparedness tools.")
+
+    if st.button("👤 View & Edit Profile Info", use_container_width=True, help="Open the profile page to update household details"):
         st.switch_page("pages/profile.py")
-        
-    if st.button("📋 Generate AI Preparedness Plan", use_container_width=True):
+
+    if st.button("📋 Generate AI Preparedness Plan", use_container_width=True, help="Create a tailored preparedness plan"):
         st.switch_page("pages/planner.py")
-        
-    if st.button("✅ Access Action Checklist", use_container_width=True):
+
+    if st.button("✅ Access Action Checklist", use_container_width=True, help="Open the checklist for your preparedness tasks"):
         st.switch_page("pages/checklist.py")
-        
-    if st.button("💬 Ask Citizen AI Chatbot", use_container_width=True):
+
+    if st.button("💬 Ask Citizen AI Chatbot", use_container_width=True, help="Open the assistant chat experience"):
         st.switch_page("pages/chat.py")
-        
-    if st.button("⛈️ Weather integration board", use_container_width=True):
+
+    if st.button("⛈️ Weather integration board", use_container_width=True, help="Open the weather information page"):
         st.switch_page("pages/weather.py")
 
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Fast weather reload card
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("<h5 style='margin:0px 0px 8px 0px; color:#ffffff;'>📍 Location Tracker</h5>", unsafe_allow_html=True)
-    st.write(f"Current tracking city: **{profile.city}**")
-    
-    if st.button("🌀 Force Refresh Local Data", use_container_width=True, type="secondary"):
+    st.markdown("---")
+    st.subheader("📍 Location Tracker")
+    st.caption(f"Current tracking city: {profile.city}")
+
+    if st.button("🌀 Force Refresh Local Data", use_container_width=True, type="secondary", help="Refresh weather information for your current city"):
         with st.spinner("Refreshing..."):
             st.session_state.weather = WeatherService.get_weather(profile.city)
             st.success("Weather details updated from service.")

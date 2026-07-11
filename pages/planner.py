@@ -6,13 +6,14 @@ from components.branding import emergency_notification_bar
 
 apply_custom_css()
 
-st.title("📋 Personal AI Preparedness Plan")
+st.header("📋 Personal AI Preparedness Plan")
 st.write(
     """
-    Generate customized storm guidelines, medication backups, pet escape routes, 
+    Generate customized storm guidelines, medication backups, pet escape routes,
     and general safety tips tailored precisely to your family size, location weather conditions, and vulnerable members.
     """
 )
+st.caption("Use this planner to create a tailored set of emergency actions for your household.")
 
 # Grab current state
 profile = st.session_state.user_profile
@@ -31,22 +32,17 @@ if weather is None:
         pass
 
 # Quick profile context summary card
-st.markdown(
-    f"""
-    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.9rem;">
-        🧬 <b>Generating context:</b> Residing in <b>{profile.city}</b> under <b>{weather.get('alert_level', 'No Alert')}</b> conditions. 
-        Household contains <b>{profile.family_members} member(s)</b> (incl. {profile.children} children, {profile.senior_citizens} senior citizens). 
-        Pets: <b>{"Yes" if profile.pets else "No"}</b>. Medical needs: <i>{profile.medical_conditions or "None reported"}</i>.
-    </div>
-    """,
-    unsafe_allow_html=True
+st.info(
+    f"Generating context for {profile.city}: alert level {weather.get('alert_level', 'No Alert')}. "
+    f"Household size {profile.family_members} (including {profile.children} children and {profile.senior_citizens} seniors). "
+    f"Pets: {'Yes' if profile.pets else 'No'}. Medical needs: {profile.medical_conditions or 'None reported'}."
 )
 
 # Buttons for plan actions
 col_btn1, col_btn2 = st.columns([1, 2])
 with col_btn1:
     btn_label = "🔄 Re-generate AI Plan" if cached_plan else "🚀 Compile AI Preparedness Plan"
-    generate_trigger = st.button(btn_label, type="primary", use_container_width=True)
+    generate_trigger = st.button(btn_label, type="primary", use_container_width=True, help="Generate or refresh your personalized preparedness plan")
 
 with col_btn2:
     if cached_plan:
@@ -80,83 +76,41 @@ if st.session_state.plan:
     
     # 1. Preparation Card
     with row1_col1:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #00e5ff; height: 100%;">
-                <h3 style="margin-top:0px; color:#00e5ff;">🏠 House & Environment Prep</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 🏠 House & Environment Prep")
         for item in plan.get("preparation", []):
-            st.markdown(f"🔹 {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
         
     # 2. Food Card
     with row1_col2:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #00c853; height: 100%;">
-                <h3 style="margin-top:0px; color:#00c853;">🍏 Food & Water Provisions</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 🍏 Food & Water Provisions")
         for item in plan.get("food", []):
-            st.markdown(f"🔸 {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
 
     # 3. Medicines Card
     with row2_col1:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #ff4b4b; height: 100%;">
-                <h3 style="margin-top:0px; color:#ff4b4b;">💊 Medicine & Conditions Support</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 💊 Medicine & Conditions Support")
         for item in plan.get("medicines", []):
-            st.markdown(f"🩺 {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
 
     # 4. Emergency Kit Card
     with row2_col2:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #ffaa00; height: 100%;">
-                <h3 style="margin-top:0px; color:#ffaa00;">🎒 Emergency Kit List</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 🎒 Emergency Kit List")
         for item in plan.get("emergency_kit", []):
-            st.markdown(f"📦 {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
 
     # 5. Travel Card
     with row3_col1:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #b57cff; height: 100%;">
-                <h3 style="margin-top:0px; color:#b57cff;">🚗 Travel & Transit Directives</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 🚗 Travel & Transit Directives")
         for item in plan.get("travel_advice", []):
-            st.markdown(f"⚠️ {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
 
     # 6. Safety Tips Card
     with row3_col2:
-        st.markdown(
-            """
-            <div class="glass-card" style="border-top: 4px solid #f9f9f9; height: 100%;">
-                <h3 style="margin-top:0px; color:#ffffff;">🛡️ Crisis & Flood Safety Tips</h3>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("### 🛡️ Crisis & Flood Safety Tips")
         for item in plan.get("safety_tips", []):
-            st.markdown(f"🛡️ {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"- {item}")
 
 else:
     # Empty plan state
     st.markdown("<br/>", unsafe_allow_html=True)
-    st.info("💡 Tap the button above to analyze your profile constraints and generate your personalized guidelines.")
+    st.info("Tap the button above to analyze your profile constraints and generate your personalized guidelines.")

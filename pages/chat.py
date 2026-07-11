@@ -6,13 +6,14 @@ from components.branding import emergency_notification_bar
 
 apply_custom_css()
 
-st.title("💬 Emergency Assistance AI Chatbot")
+st.header("💬 Emergency Assistance AI Chatbot")
 st.write(
     """
-    Ask instant, monsoon-related safety questions. Your profile demographics and local weather alert levels 
+    Ask instant, monsoon-related safety questions. Your profile demographics and local weather alert levels
     are automatically sent as conversational context to the LLM to deliver appropriate advice.
     """
 )
+st.caption("Choose a suggested prompt or type your own question below.")
 
 # Initialize data
 profile = st.session_state.user_profile
@@ -30,18 +31,18 @@ if weather is None:
         pass
 
 # Quick suggestion prompt triggers
-st.markdown("##### 💡 Suggested Questions")
+st.subheader("💡 Suggested Questions")
 sug_col1, sug_col2, sug_col3 = st.columns(3)
 clicked_prompt = None
 
 with sug_col1:
-    if st.button("🌧️ General Storm Prep?", use_container_width=True):
+    if st.button("🌧️ General Storm Prep?", use_container_width=True, help="Ask for general storm preparation advice"):
         clicked_prompt = "How should I prepare for heavy rain?"
 with sug_col2:
-    if st.button("🩺 Chronic Medicine Info?", use_container_width=True):
+    if st.button("🩺 Chronic Medicine Info?", use_container_width=True, help="Ask for medicine-related monsoon safety advice"):
         clicked_prompt = "What medicines should diabetics keep during rains?"
 with sug_col3:
-    if st.button("🚗 Travel Feasibility?", use_container_width=True):
+    if st.button("🚗 Travel Feasibility?", use_container_width=True, help="Ask whether travel is advisable given current conditions"):
         clicked_prompt = "Is it safe to travel tomorrow?"
 
 # Input box
@@ -61,7 +62,7 @@ for msg in history:
 if active_query:
     # 1. Check API validation
     if not api_configured:
-        st.error("⚠️ **AI Communication Interrupted:** Please enter a valid GROQ_API_KEY in the sidebar settings panel before chatting.")
+        st.error("AI communication is unavailable until a valid Groq API key is configured in the sidebar settings panel.")
     else:
         # Display user message
         with st.chat_message("user"):
@@ -94,7 +95,7 @@ if active_query:
 # Clear Button in Sidebar/Footer
 if len(history) > 0:
     st.markdown("---")
-    if st.button("🗑️ Clear Chat Conversations", type="secondary"):
+    if st.button("🗑️ Clear Chat Conversations", type="secondary", help="Remove the current chat history from this session"):
         st.session_state.chat_history = []
         st.success("Chat history wiped.")
         st.rerun()
