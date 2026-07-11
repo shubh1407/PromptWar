@@ -2,34 +2,39 @@ import os
 import streamlit as st
 from models.user_profile import UserProfile
 
+
+def create_default_profile() -> UserProfile:
+    """Return the default guest profile used by the app."""
+    return UserProfile(
+        name="Emergency Guest",
+        city="Mumbai",
+        family_members=1,
+        children=0,
+        senior_citizens=0,
+        pets=False,
+        medical_conditions="",
+    )
+
+
 def init_session_state() -> None:
     """
     Initializes all global Streamlit session state properties.
     Ensures they are present before pages are loaded.
     """
-    # Load defaults from environment variables where applicable
     if "groq_api_key" not in st.session_state:
         st.session_state.groq_api_key = os.getenv("GROQ_API_KEY", "")
-        
+
     if "groq_model" not in st.session_state:
         st.session_state.groq_model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
     if "logged_in" not in st.session_state:
         st.session_state.logged_in = False
-        
+
     if "user_role" not in st.session_state:
-        st.session_state.user_role = "guest"  # "guest" or "authenticated"
+        st.session_state.user_role = "guest"
 
     if "user_profile" not in st.session_state:
-        st.session_state.user_profile = UserProfile(
-            name="Emergency Guest",
-            city="Mumbai",
-            family_members=1,
-            children=0,
-            senior_citizens=0,
-            pets=False,
-            medical_conditions=""
-        )
+        st.session_state.user_profile = create_default_profile()
 
     if "weather" not in st.session_state:
         st.session_state.weather = None
@@ -43,6 +48,7 @@ def init_session_state() -> None:
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+
 def logout() -> None:
     """
     Handles logging out the user, clearing relevant session states,
@@ -50,20 +56,13 @@ def logout() -> None:
     """
     st.session_state.logged_in = False
     st.session_state.user_role = "guest"
-    st.session_state.user_profile = UserProfile(
-        name="Emergency Guest",
-        city="Mumbai",
-        family_members=1,
-        children=0,
-        senior_citizens=0,
-        pets=False,
-        medical_conditions=""
-    )
+    st.session_state.user_profile = create_default_profile()
     st.session_state.weather = None
     st.session_state.checklist = None
     st.session_state.plan = None
     st.session_state.chat_history = []
     st.rerun()
+
 
 def apply_custom_css() -> None:
     """

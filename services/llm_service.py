@@ -9,6 +9,18 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from models.user_profile import UserProfile
 from prompts.system_prompts import PLANNER_PROMPT, CHECKLIST_PROMPT, CHAT_SYSTEM_PROMPT
 
+
+def _sanitize_llm_json_content(content: str) -> str:
+    """Remove markdown fences around JSON responses so the payload can be parsed reliably."""
+    cleaned = content.strip()
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[7:]
+    if cleaned.startswith("```"):
+        cleaned = cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    return cleaned.strip()
+
 # Configure logger
 logger = logging.getLogger(__name__)
 
@@ -79,8 +91,8 @@ class LLMService:
             structured_llm = llm.with_structured_output(PreparednessPlanModel)
             res = structured_llm.invoke(prompt_content)
             return res.model_dump()
-        except Exception as e:
-            logger.warning(f"Structured output parsing failed: {e}. Falling back to manual JSON parsing...")
+        except Exception as exc:
+            logger.warning("Structured output parsing failed; falling back to manual JSON parsing.", exc_info=exc)
             
             # Method 2: Manual JSON query
             messages = [
@@ -88,16 +100,7 @@ class LLMService:
                 HumanMessage(content=prompt_content)
             ]
             response = llm.invoke(messages)
-            content = response.content.strip()
-            
-            # Sanitise response
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
+            content = _sanitize_llm_json_content(response.content)
             
             try:
                 parsed = json.loads(content)
@@ -108,7 +111,7 @@ class LLMService:
                     validated[key] = val if isinstance(val, list) else [str(val)]
                 return validated
             except Exception as json_err:
-                logger.error(f"Fallback JSON parsing also failed: {json_err}. Raw content: {content}")
+                logger.exception("Fallback JSON parsing also failed. Raw content: %s", content)
                 raise ValueError("The AI model returned an invalid format. Please try again.")
 
     @staticmethod
@@ -137,15 +140,7 @@ class LLMService:
         
         try:
             response = llm.invoke(messages)
-            content = response.content.strip()
-            
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
+            content = _sanitize_llm_json_content(response.content)
             
             items = json.loads(content)
             if not isinstance(items, list):
@@ -166,8 +161,8 @@ class LLMService:
                         "completed": False
                     })
             return sanitized
-        except Exception as e:
-            logger.error(f"Error generating checklist: {e}")
+        except Exception:
+            logger.exception("Error generating checklist")
             # Dynamic fallback list if API fails
             fallback = [
                 {"task": f"Check weather forecasts and alert updates for {profile.city} daily.", "category": "General", "completed": False},
@@ -213,6 +208,6 @@ class LLMService:
         try:
             for response_chunk in llm.stream(messages):
                 yield response_chunk.content
-        except Exception as e:
-            logger.error(f"Chat streaming error: {e}")
-            yield f"\n\n**Error:** {str(e)}\nMake sure your GROQ_API_KEY is correct."
+        except Exception as exc:
+            logger.exception("Chat streaming error")
+            yield f"\n\n**Error:** {str(exc)}\nMake sure your GROQ_API_KEY is correct."

@@ -7,6 +7,37 @@ from typing import Dict, Any
 # Configure logger
 logger = logging.getLogger(__name__)
 
+
+def _build_mock_weather(city: str) -> Dict[str, Any]:
+    """Generate deterministic fallback weather data for the monsoon demo."""
+    city_hash = sum(ord(char) for char in city) if city else 100
+    random.seed(city_hash)
+
+    temperature = round(random.uniform(24.0, 32.0), 1)
+    rain_probability = random.choice([65, 80, 95])
+    wind_speed = round(random.uniform(15.0, 48.0), 1)
+    humidity = random.randint(75, 98)
+
+    if rain_probability >= 90 and wind_speed > 35:
+        alert_level = "Red Alert (Severe Danger)"
+    elif rain_probability >= 80 or wind_speed > 25:
+        alert_level = "Orange Alert (Be Prepared)"
+    else:
+        alert_level = "Yellow Alert (Stay Updated)"
+
+    conditions = random.choice(["Heavy Monsoon Rain", "Thunderstorms", "Widespread Showers", "Overcast with Drizzle"])
+
+    return {
+        "temperature": temperature,
+        "rain_probability": rain_probability,
+        "wind_speed": wind_speed,
+        "humidity": humidity,
+        "alert_level": alert_level,
+        "conditions": conditions,
+        "is_mock": True,
+    }
+
+
 class WeatherService:
     @staticmethod
     def get_weather(city: str) -> Dict[str, Any]:
@@ -56,36 +87,7 @@ class WeatherService:
                     }
                 else:
                     logger.warning(f"OpenWeather API returned code {response.status_code}. Using fallback.")
-            except Exception as e:
-                logger.error(f"Error fetching OpenWeather data: {e}. Using fallback.")
-        
-        # Fallback simulated data tailored for monsoon demo
-        # Seed by city name to keep it consistent per session, but randomized enough to look active
-        city_hash = sum(ord(c) for c in city) if city else 100
-        random.seed(city_hash)
-        
-        # Simulate standard monsoon weather for South Asia / tropical regions
-        temp = round(random.uniform(24.0, 32.0), 1)
-        rain_prob = random.choice([65, 80, 95])  # High rain chance in monsoon
-        wind = round(random.uniform(15.0, 48.0), 1)
-        humidity = random.randint(75, 98)  # High humidity in monsoon
-        
-        # Select Alert Level based on rain probability and wind speed
-        if rain_prob >= 90 and wind > 35:
-            alert_level = "Red Alert (Severe Danger)"
-        elif rain_prob >= 80 or wind > 25:
-            alert_level = "Orange Alert (Be Prepared)"
-        else:
-            alert_level = "Yellow Alert (Stay Updated)"
-            
-        conditions = random.choice(["Heavy Monsoon Rain", "Thunderstorms", "Widespread Showers", "Overcast with Drizzle"])
-        
-        return {
-            "temperature": temp,
-            "rain_probability": rain_prob,
-            "wind_speed": wind,
-            "humidity": humidity,
-            "alert_level": alert_level,
-            "conditions": conditions,
-            "is_mock": True
-        }
+            except Exception:
+                logger.exception("Error fetching OpenWeather data; using fallback.")
+
+        return _build_mock_weather(city)

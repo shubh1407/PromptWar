@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
-from typing import Optional
+
 
 class UserProfile(BaseModel):
     name: str = Field(default="", min_length=2, description="Your full name")
